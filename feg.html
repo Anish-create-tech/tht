@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Company Purpose & Vision</title>
+  <style>
+    :root {
+      --blue: #0052cc;
+      --dark: #2b2b2b;
+      --light-gray: #940b0b;
+      --text: #222;
+      --muted: #666;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: #8f0c0c;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* === Hero Section === */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 320px;
+    }
+
+    .hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .hero-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 32px;
+      color: #fff;
+    }
+
+    .hero-block.purpose {
+      background: var(--blue);
+    }
+
+    .hero-block.vision {
+      background: var(--dark);
+    }
+
+    .hero-block h2 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .hero-block p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      max-width: 38ch;
+    }
+
+    /* === Core Values Section === */
+    .values {
+      background: var(--light-gray);
+      padding: 40px 20px;
+    }
+
+    .values-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .values h3 {
+      font-size: 1.8rem;
+      margin-bottom: 24px;
+    }
+
+    .values-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .value-item {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .value-item h4 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: var(--blue);
+    }
+
+    .value-item p {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 800px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <img src="C:\Users\balwa\Downloads\360_F_526623614_gZJXSQGovsXCd1ZK80b0eD2XrST2pYr8 (1).jpg" alt="Worker at facility">
+    <div class="hero-text">
+      <div class="hero-block purpose">
+        <h2>Our purpose</h2>
+        <p>To revolutionize urban cooling by transforming rooftops into intelligent, energy-positive systems — making cities cooler, cleaner, and more sustainable.</p>
+      </div>
+      <div class="hero-block vision">
+        <h2>Our vision</h2>
+        <p>To lead the global shift toward adaptive, AI-driven rooftop technologies that redefine energy use and climate resilience for future cities.</p>
+      </div>
+    </div>
+  </section>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Core Values Accordion</title>
+  <style>
+    :root {
+      --blue: #0052cc;
+      --light-gray: #f5f5f5;
+      --muted: #666;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      margin: 0;
+      background: var(--light-gray);
+      color: #222;
+    }
+
+    .values {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 30px;
+    }
+
+    .values h3 {
+      font-size: 1.8rem;
+      margin-bottom: 24px;
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    /* Accordion item */
+    .value-item {
+      border-bottom: 1px solid #ddd;
+      padding: 12px 0;
+    }
+
+    .value-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .value-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .value-title::before {
+      content: "◆";
+      color: var(--blue);
+      font-size: 14px;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: none;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      color: #444;
+    }
+
+    .value-content {
+      margin-top: 8px;
+      margin-left: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .value-content ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    .value-content li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 4px 0;
+      list-style-type: disc;
+    }
+
+    /* Active state */
+    .value-item.active .value-content {
+      display: block;
+    }
+
+    .value-item.active .toggle-btn {
+      transform: rotate(180deg);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media(max-width: 768px){
+      .values-grid{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="values">
+    <h3>Our core values</h3>
+    <div class="values-grid">
+      
+      <div class="value-item">
+        <div class="value-header">
+          <div class="value-title">Integrity</div>
+          <button class="toggle-btn">＋</button>
+        </div>
+        <div class="value-content">
+          <ul>
+            <li>Be truthful in all actions and communications</li>
+            <li>Follow moral principles and company standards</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="value-item">
+        <div class="value-header">
+          <div class="value-title">Excellence</div>
+          <button class="toggle-btn">＋</button>
+        </div>
+        <div class="value-content">
+          <ul>
+            <li>Strive for outstanding results</li>
+            <li>Innovate with quality</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="value-item">
+        <div class="value-header">
+          <div class="value-title">Care</div>
+          <button class="toggle-btn">＋</button>
+        </div>
+        <div class="value-content">
+          <ul>
+            <li>Value people and communities</li>
+            <li>Protect the environment</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="value-item">
+        <div class="value-header">
+          <div class="value-title">Courage</div>
+          <button class="toggle-btn">＋</button>
+        </div>
+        <div class="value-content">
+          <ul>
+            <li>Take bold decisions</li>
+            <li>Stand by principles</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="value-item">
+        <div class="value-header">
+          <div class="value-title">Resilience</div>
+          <button class="toggle-btn">＋</button>
+        </div>
+        <div class="value-content">
+          <ul>
+            <li>Adapt to change</li>
+            <li>Thrive in challenges</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="value-item">
+        <div class="value-header">
+          <div class="value-title">Collaboration & Teamwork</div>
+          <button class="toggle-btn">＋</button>
+        </div>
+        <div class="value-content">
+          <ul>
+            <li>Listen actively and share clearly</li>
+            <li>Help teammates succeed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.querySelectorAll('.value-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const item = header.parentElement;
+        const btn = header.querySelector('.toggle-btn');
+        
+        // Close other items
+        document.querySelectorAll('.value-item').forEach(i => {
+          if (i !== item) {
+            i.classList.remove('active');
+            i.querySelector('.toggle-btn').textContent = '＋';
+          }
+        });
+
+        // Toggle current
+        item.classList.toggle('active');
+        btn.textContent = item.classList.contains('active') ? '−' : '＋';
+      });
+    });
+  </script>
+
+</body>
+</html>
+

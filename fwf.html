@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SkyCool Flux Pods Simulation</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #111827; /* dark slate for readability */
+    }
+
+    /* Landing screen - light theme */
+    #landing {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #071D2B, #07313E);
+      text-align: center;
+      transition: all 1s ease;
+    }
+    #landing h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+  background: linear-gradient(90deg, #ff7854, #ffcc70);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+    }
+    #landing p {
+      color: #ffffff; /* slate-700 */
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+    }
+    #landing button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #e2e8f0, #cbd5e1);
+      color: #111827;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(16,24,40,0.06);
+    }
+    #landing button:hover {
+      background: linear-gradient(90deg, #dbe6f0, #c4d0da);
+      transform: translateY(-2px);
+    }
+
+    /* Simulation screen - light theme */
+    #simulation {
+      opacity: 0;
+      transform: translateY(50px);
+      pointer-events: none;
+      transition: opacity 1s ease, transform 1s ease;
+      background: linear-gradient(135deg, #071D2B, #07313E);
+      color: #111827;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      box-sizing: border-box;
+      overflow: auto;
+      border-top: 1px solid rgba(15,23,42,0.04);
+    }
+    #simulation.active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    #simulation h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, #ff7854, #ffcc70);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    #simulation .instruction {
+      max-width: 850px;
+      text-align: center;
+      margin: 10px auto 25px auto;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #475569; /* slate-600 */
+    }
+    #simulation canvas {
+      border: 1px solid #000000; /* soft blue border */
+      cursor: grab;
+      background: radial-gradient(circle at center, #000000, #000000); /* light blue surface */
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(14,46,90,0.06);
+    }
+    #simulation .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    button.ctrl {
+      padding: 10px 18px;
+      background: linear-gradient(90deg, #dbeeff, #c6e0ff); /* blue-ish */
+      color: #022c57; /* deep blue text */
+      border: 1px solid rgba(3,57,115,0.06);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 18px rgba(3,37,77,0.06);
+    }
+    button.ctrl:hover {
+      background: linear-gradient(90deg, #c6e0ff, #a6d0ff);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Landing screen -->
+  <div id="landing">
+    <h1>[ SkyCool™ Flux Pods ]</h1>
+    <p>Do you want to see the ML heat circulation simulation?</p>
+    <button id="startBtn">Yes, take me there!</button>
+  </div>
+
+  <!-- Simulation screen -->
+  <div id="simulation">
+    <h2>🔥 Hot-Zone Pipe ML Simulation</h2>
+    <p class="instruction">
+      This interactive demo shows how <strong>heat zones</strong> influence fluid 
+      circulation inside <em>SkyCool™ Flux Pods</em>.  
+      <br>👉 Drag the glowing <span style="color:#ff9f68;">hot-zone circle</span> to change where heat is applied.  
+      <br>The AI model dynamically redistributes liquid flow to maintain <strong>optimal cooling balance</strong>.
+    </p>
+
+    <canvas id="simCanvas"></canvas>
+
+    <div class="controls">
+      <button class="ctrl" id="toggleBtn">Pause</button>
+      <button class="ctrl" id="resetBtn">Reset Liquid</button>
+    </div>
+  </div>
+
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+
+  <script>
+    // Transition
+    const landing = document.getElementById('landing');
+    const sim = document.getElementById('simulation');
+    document.getElementById('startBtn').addEventListener('click', () => {
+      landing.style.opacity = '0';
+      landing.style.transform = 'translateY(-50px)';
+      setTimeout(() => {
+        landing.style.display = 'none';
+        sim.classList.add('active');
+      }, 1000);
+    });
+
+    // Simulation
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = 800, H = 300;
+    const cellSize = 10;
+    const rows = Math.floor(H / cellSize);
+    const cols = Math.floor(W / cellSize);
+    const hotRadius = 40;
+    canvas.width = W; canvas.height = H;
+
+    let hotPos = {x: 300, y: 120};
+    let isDragging = false;
+    let running = true;
+
+    let grid = initGrid();
+    let temp = initTemp();
+    let model;
+
+    function initGrid() {
+      const g = new Float32Array(rows * cols).fill(0);
+      const mid = Math.floor(rows/2);
+      for(let c=10;c<cols-10;c++){
+        g[mid*cols+c] = 0.9*(1-Math.abs(c-cols/2)/(cols/2));
+        g[(mid+1)*cols+c] = 0.6*(1-Math.abs(c-cols/2)/(cols/2));
+        g[(mid-1)*cols+c] = 0.6*(1-Math.abs(c-cols/2)/(cols/2));
+      }
+      return g;
+    }
+    function initTemp(){ return new Float32Array(rows*cols).fill(25); }
+
+    async function setupModel(){
+      model = tf.sequential();
+      model.add(tf.layers.dense({inputShape:[3], units:16, activation:'relu'}));
+      model.add(tf.layers.dense({units:8, activation:'relu'}));
+      model.add(tf.layers.dense({units:2, activation:'softmax'}));
+      model.compile({optimizer:tf.train.adam(0.01), loss:'categoricalCrossentropy'});
+
+      const xs=[], ys=[];
+      for(let i=0;i<2000;i++){
+        const left=20+Math.random()*40;
+        const right=20+Math.random()*40;
+        const center=20+Math.random()*60;
+        let fLeft=0.5+(right-left)/200;
+        fLeft=Math.max(0.05,Math.min(0.95,fLeft));
+        const fRight=1-fLeft;
+        xs.push([center/100,left/100,right/100]);
+        ys.push([fLeft,fRight]);
+      }
+      const xt=tf.tensor2d(xs); const yt=tf.tensor2d(ys);
+      await model.fit(xt,yt,{epochs:20,batchSize:64,verbose:0});
+      xt.dispose(); yt.dispose();
+    }
+    setupModel();
+
+    function simulate(){
+      const nextGrid=new Float32Array(grid);
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const idx=r*cols+c;
+          const x=c*cellSize+cellSize/2;
+          const y=r*cellSize+cellSize/2;
+          const dist=Math.hypot(x-hotPos.x,y-hotPos.y);
+          if(dist<hotRadius){
+            const add=(1-dist/hotRadius)*80;
+            temp[idx]=25+add;
+          } else {
+            temp[idx]+= (25-temp[idx])*0.02;
+          }
+        }
+      }
+      if(model){
+        const transfer=new Float32Array(grid.length);
+        for(let r=0;r<rows;r++){
+          for(let c=0;c<cols;c++){
+            const idx=r*cols+c; const val=grid[idx];
+            if(val<1e-6) continue;
+            const leftIdx=r*cols+Math.max(0,c-1);
+            const rightIdx=r*cols+Math.min(cols-1,c+1);
+            const input=tf.tensor2d([[temp[idx]/100,temp[leftIdx]/100,temp[rightIdx]/100]]);
+            const pred=model.predict(input);
+            const arr=pred.dataSync();
+            input.dispose(); pred.dispose();
+            const fracLeft=arr[0], fracRight=arr[1];
+            const out=val*0.12;
+            const moveLeft=out*fracLeft;
+            const moveRight=out*fracRight;
+            transfer[idx]-=(moveLeft+moveRight);
+            transfer[leftIdx]+=moveLeft;
+            transfer[rightIdx]+=moveRight;
+          }
+        }
+        for(let i=0;i<grid.length;i++) nextGrid[i]=Math.max(0,nextGrid[i]+transfer[i]);
+        grid=nextGrid;
+      }
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#203040';
+      ctx.fillRect(10,Math.floor(rows/2-1)*cellSize-cellSize*0.5,W-20,cellSize*3);
+
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const idx=r*cols+c; const val=grid[idx];
+          if(val>0.002){
+            const x=c*cellSize, y=r*cellSize;
+            ctx.fillStyle=concentrationToColor(val);
+            ctx.fillRect(x+1,y+1,cellSize-2,cellSize-2);
+          }
+        }
+      }
+      ctx.beginPath();
+      ctx.arc(hotPos.x,hotPos.y,hotRadius,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,100,50,0.18)'; ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle='rgba(255,140,60,0.9)'; ctx.stroke();
+      ctx.fillStyle='white'; ctx.font='12px monospace';
+      ctx.fillText('Hot zone (drag me)',hotPos.x-40,hotPos.y-hotRadius-8);
+    }
+    function concentrationToColor(v){
+      const t=Math.min(1,Math.max(0,v));
+      const r=Math.floor(255*Math.min(1,Math.max(0,(t-0.6)/0.4)));
+      const g=Math.floor(255*Math.min(1,Math.max(0,(1-Math.abs(t-0.5)*2)))); 
+      const b=Math.floor(255*Math.min(1,Math.max(0,(1-t)/1)));
+      const a=Math.min(0.95,0.25+t*0.75);
+      return `rgba(${r},${g},${b},${a})`;
+    }
+    function loop(){
+      if(running){ simulate(); draw(); }
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // Drag logic
+    canvas.addEventListener('mousedown', e=>{
+      const rect=canvas.getBoundingClientRect();
+      const x=e.clientX-rect.left; const y=e.clientY-rect.top;
+      if(Math.hypot(x-hotPos.x,y-hotPos.y)<=hotRadius+6) isDragging=true;
+    });
+    canvas.addEventListener('mousemove', e=>{
+      if(!isDragging) return;
+      const rect=canvas.getBoundingClientRect();
+      hotPos.x=Math.max(0,Math.min(W,e.clientX-rect.left));
+      hotPos.y=Math.max(0,Math.min(H,e.clientY-rect.top));
+    });
+    window.addEventListener('mouseup', ()=>{ isDragging=false; });
+
+    document.getElementById('toggleBtn').onclick=()=>{
+      running=!running;
+      document.getElementById('toggleBtn').innerText=running?'Pause':'Resume';
+    };
+    document.getElementById('resetBtn').onclick=()=>{ grid=initGrid(); };
+  </script>
+</body>
+</html>
